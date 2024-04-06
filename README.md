@@ -16,6 +16,6 @@ cd td/example/android-json
 
 **How to build:**
 1. If you don't have Android SDK installed: `./fetch-sdk.sh`
-2. Run `./build-openssl.sh [sdk path]`
-3. Run `./build-tdlib.sh [sdk path]`
+2. Run `./build-openssl.sh [sdk path if not using fetch-sdk]`
+3. Run `./build-tdlib.sh [sdk path if not using fetch-sdk]`
 4. Profit
