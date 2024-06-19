@@ -1,18 +1,8 @@
 #!/usr/bin/env bash
 
-source ./config.sh || exit 1
-
-if [ ! -d "$ANDROID_SDK_ROOT" ] ; then
-  echo "Error: directory \"$ANDROID_SDK_ROOT\" doesn't exist. Run ./fetch-sdk.sh first, or provide a valid path to Android SDK."
-  exit 1
-fi
-
-cd $(dirname $0)
-ANDROID_SDK_ROOT="$(cd "$(dirname -- "$ANDROID_SDK_ROOT")" >/dev/null; pwd -P)/$(basename -- "$ANDROID_SDK_ROOT")"
-OPENSSL_INSTALL_DIR="$(cd "$(dirname -- "$OPENSSL_INSTALL_DIR")" >/dev/null; pwd -P)/$(basename -- "$OPENSSL_INSTALL_DIR")"
-cd $(dirname $0)
-
 source ./check-environment.sh || exit 1
+
+cd $(dirname $0)
 
 if [ -e "$OPENSSL_INSTALL_DIR" ]; then
   echo "Warning: file or directory \"$OPENSSL_INSTALL_DIR\" already exists."
@@ -40,30 +30,29 @@ if ! clang --help >/dev/null 2>&1 ; then
   exit 1
 fi
 
-ANDROID_API32=$((ANDROID_PLATFORM>16 ? ANDROID_PLATFORM : 16))
-ANDROID_API64=$((ANDROID_PLATFORM>21 ? ANDROID_PLATFORM : 21))
-
 OPENSSL_FLAGS="shared"
 
 for ABI in arm64-v8a armeabi-v7a x86_64 x86 ; do
   if [[ $ABI == "x86" ]] ; then
-    ./Configure android-x86 $OPENSSL_FLAGS -U__ANDROID_API__ -D__ANDROID_API__=$ANDROID_API32 || exit 1
+    ./Configure android-x86 $OPENSSL_FLAGS -U__ANDROID_API__ -D__ANDROID_API__=$ANDROID_MIN_SDK || exit 1
   elif [[ $ABI == "x86_64" ]] ; then
-    ./Configure android-x86_64 $OPENSSL_FLAGS -U__ANDROID_API__ -D__ANDROID_API__=$ANDROID_API64 || exit 1
+    ./Configure android-x86_64 $OPENSSL_FLAGS -U__ANDROID_API__ -D__ANDROID_API__=$ANDROID_MIN_SDK || exit 1
   elif [[ $ABI == "armeabi-v7a" ]] ; then
-    ./Configure android-arm $OPENSSL_FLAGS -U__ANDROID_API__ -D__ANDROID_API__=$ANDROID_API32 -D__ARM_MAX_ARCH__=8 || exit 1
+    ./Configure android-arm $OPENSSL_FLAGS -U__ANDROID_API__ -D__ANDROID_API__=$ANDROID_MIN_SDK -D__ARM_MAX_ARCH__=8 || exit 1
   elif [[ $ABI == "arm64-v8a" ]] ; then
-    ./Configure android-arm64 $OPENSSL_FLAGS -U__ANDROID_API__ -D__ANDROID_API__=$ANDROID_API64 || exit 1
+    ./Configure android-arm64 $OPENSSL_FLAGS -U__ANDROID_API__ -D__ANDROID_API__=$ANDROID_MIN_SDK || exit 1
   fi
 
   sed -i.bak 's/-O3/-O3 -ffunction-sections -fdata-sections/g' Makefile || exit 1
 
   make depend -s || exit 1
-  make -j4 -s || exit 1
+  make -s || exit 1
 
   mkdir -p $OPENSSL_INSTALL_DIR/$ABI/lib/ || exit 1
   cp libcrypto.so libssl.so $OPENSSL_INSTALL_DIR/$ABI/lib/ || exit 1
   cp -r include $OPENSSL_INSTALL_DIR/$ABI/ || exit 1
+
+  llvm-strip -s $OPENSSL_INSTALL_DIR/$ABI/lib/* || exit 1
 
   make distclean || exit 1
 done

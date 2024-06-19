@@ -44,3 +44,5 @@ if ! perl -MExtUtils::MakeMaker -MLocale::Maketext::Simple -MPod::Usage -e '' >/
   fi
   exit 1
 fi
+
+source ./config.sh || exit 1

@@ -1,27 +1,13 @@
 #!/usr/bin/env bash
 
-source ./config.sh || exit 1
+source ./check-environment.sh || exit 1
 
 if [ "$ANDROID_STL" != "c++_static" ] && [ "$ANDROID_STL" != "c++_shared" ] ; then
   echo 'Error: ANDROID_STL must be either "c++_static" or "c++_shared".'
   exit 1
 fi
 
-source ./check-environment.sh || exit 1
-
-if [ ! -d "$ANDROID_SDK_ROOT" ] ; then
-  echo "Error: directory \"$ANDROID_SDK_ROOT\" doesn't exist. Run ./fetch-sdk.sh first, or provide a valid path to Android SDK."
-  exit 1
-fi
-
-if [ ! -d "$OPENSSL_INSTALL_DIR" ] ; then
-  echo "Error: directory \"$OPENSSL_INSTALL_DIR\" doesn't exists. Run ./build-openssl.sh first."
-  exit 1
-fi
-
-ANDROID_SDK_ROOT="$(cd "$(dirname -- "$ANDROID_SDK_ROOT")" >/dev/null; pwd -P)/$(basename -- "$ANDROID_SDK_ROOT")"
 ANDROID_NDK_ROOT="$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION"
-OPENSSL_INSTALL_DIR="$(cd "$(dirname -- "$OPENSSL_INSTALL_DIR")" >/dev/null; pwd -P)/$(basename -- "$OPENSSL_INSTALL_DIR")"
 PATH=$ANDROID_SDK_ROOT/cmake/$CMAKE_VERSION/bin:$PATH
 
 cd $(dirname $0)
