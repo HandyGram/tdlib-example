@@ -1,4 +1,5 @@
-# it's easier to setup all this stuff in a single place
+mkdir -p "$(dirname $0)/third-party/openssl"
+
 export \
     OPENSSL_INSTALL_DIR="$(realpath $(dirname $0)/third-party/openssl)" \
     ANDROID_STL=c++_static \
